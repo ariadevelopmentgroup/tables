@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Աղյուսակներ</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .site-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .search-container input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 250px;
+        }
+
+        /* Standardized button styles */
+        .btn {
+            height: 40px;
+            padding: 0 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 500;
+            background-color: #000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+        }
+
+        .btn:hover {
+            background-color: #333;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-delete {
+            display: none; /* Hidden by default */
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            height: 40px;
+            width: 40px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+
+        .trash-icon {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        /* Main content */
+        main {
+            padding: 2rem 0;
+        }
+
+        .info-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            margin-top: 1.5rem; /* Added space between header and info section */
+        }
+
+        h2 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        /* Table section */
+        .table-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr.copied {
+            background-color: #d5f5e3 !important;
+        }
+
+        .copy-btn {
+            height: 30px;
+            padding: 0 0.5rem;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-btn:hover {
+            background-color: #333;
+        }
+
+        /* Add row form */
+        .add-row-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .add-row-form input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 150px;
+            height: 40px; /* Match button height */
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+            max-width: 300px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background-color: #2ecc71;
+        }
+
+        .toast.error {
+            background-color: #e74c3c;
+        }
+
+        .toast.info {
+            background-color: #3498db;
+        }
+
+        .toast.warning {
+            background-color: #f39c12;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-container {
+                width: 100%;
+            }
+
+            .search-container input {
+                flex: 1;
+            }
+
+            .table-controls {
+                flex-direction: column;
+            }
+
+            .add-row-form {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* No data message */
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="site-name">Աղյուսակներ</div>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Որոնել ID համարով...">
+                    <button id="searchBtn" class="btn">Փնտրել</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="info-section">
+            <h2>Կարևոր!!!</h2>
+            <p>Յուրաքանչյուր աշխատանքային օր անհրաժեշտ է նշված ժամերին անջատել և միացնել Terminal-ները։</p>
+            <p><b>🔹 Երեկոյան ժամը <u>21։40</u>-ին անջատել։</b></p>
+            <p><b>🔹 Առավոտյան ժամը <u>07։40</u>-ին միացնել։</b></p>
+        </section>
+
+        <section class="table-section">
+            <div class="table-controls">
+                <div class="add-row-form">
+                    <input type="text" id="addressInput" placeholder="Մուտքագրել հասցե">
+                    <input type="text" id="idNumberInput" placeholder="Մուտքագրել ID համար">
+                    <button id="addRowBtn" class="btn">Ավելացնել տող</button>
+                </div>
+                <div class="table-buttons">
+                    <button id="downloadTableBtn" class="btn btn-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Ներբեռնել
+                    </button>
+                    <button id="deleteSelectedBtn" class="btn-delete">
+                        <svg class="trash-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>Հասցե</th>
+                            <th>ID համար</th>
+                            <th>Գործողություն</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Table data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+                <div id="noDataMessage" class="no-data">Տվյալներ չկան: Սկսելու համար ավելացրեք նոր տող։</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal for delete confirmation -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Հաստատել ջնջումը</h3>
+            </div>
+            <div class="modal-body">
+                <p id="deleteModalMessage">Վստա՞հ եք, որ ուզում եք ջնջել ընտրված տողերը։</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelDeleteBtn" class="btn">Չեղարկել</button>
+                <button id="confirmDeleteBtn" class="btn">Ջնջել</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SheetJS library for Excel file handling -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const addressInput = document.getElementById('addressInput');
+        const idNumberInput = document.getElementById('idNumberInput');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const tableBody = document.getElementById('tableBody');
+        const selectAll = document.getElementById('selectAll');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const downloadTableBtn = document.getElementById('downloadTableBtn');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const toastContainer = document.getElementById('toastContainer');
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteModalMessage = document.getElementById('deleteModalMessage');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        // Data storage
+        let tableData = [];
+        let selectedRowsForDeletion = [];
+
+        // Initialize the application
+        function init() {
+            loadDataFromLocalStorage();
+            renderTable();
+            setupEventListeners();
+        }
+
+        // Load data from localStorage
+        function loadDataFromLocalStorage() {
+            const savedData = localStorage.getItem('idManagementData');
+            if (savedData) {
+                try {
+                    tableData = JSON.parse(savedData);
+                } catch (error) {
+                    console.error('Սխալ առաջացավ տվյալների բեռնման ժամանակ localStorage:', error);
+                    tableData = [];
+                }
+            }
+        }
+
+        // Save data to localStorage
+        function saveDataToLocalStorage() {
+            try {
+                localStorage.setItem('idManagementData', JSON.stringify(tableData));
+            } catch (error) {
+                console.error('Սխալ առաջացավ տվյալների պահպանման ժամանակ localStorage:', error);
+                showToast('Չհաջողվեց տեղական տվյալների պահպանումը: Ձեր պահեստը կարող է լցված լինել:', 'error');
+            }
+        }
+
+        // Render the table with current data
+        function renderTable() {
+            tableBody.innerHTML = '';
+            
+            if (tableData.length === 0) {
+                noDataMessage.style.display = 'block';
+                return;
+            }
+            
+            noDataMessage.style.display = 'none';
+            
+            tableData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                if (row.copied) {
+                    tr.classList.add('copied');
+                }
+                
+                // Checkbox cell
+                const checkboxCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.index = index;
+                checkbox.className = 'row-checkbox';
+                checkbox.addEventListener('change', updateDeleteButtonVisibility);
+                checkboxCell.appendChild(checkbox);
+                
+                // Address cell
+                const addressCell = document.createElement('td');
+                addressCell.textContent = row.address;
+                
+                // ID Number cell
+                const idNumberCell = document.createElement('td');
+                idNumberCell.textContent = row.idNumber;
+                
+                // Actions cell
+                const actionsCell = document.createElement('td');
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = 'Պատճենել ID-ին';
+                copyBtn.className = 'copy-btn';
+                copyBtn.dataset.index = index;
+                actionsCell.appendChild(copyBtn);
+                
+                // Append cells to row
+                tr.appendChild(checkboxCell);
+                tr.appendChild(addressCell);
+                tr.appendChild(idNumberCell);
+                tr.appendChild(actionsCell);
+                
+                // Append row to table body
+                tableBody.appendChild(tr);
+            });
+            
+            // Update delete button visibility after rendering
+            updateDeleteButtonVisibility();
+        }
+
+        // Update delete button visibility based on checkbox selection
+        function updateDeleteButtonVisibility() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length > 0) {
+                deleteSelectedBtn.style.display = 'flex';
+            } else {
+                deleteSelectedBtn.style.display = 'none';
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Add row button
+            addRowBtn.addEventListener('click', addRow);
+            
+            // Search button
+            searchBtn.addEventListener('click', searchTable);
+            
+            // Search input (search on Enter key and filter non-numeric characters)
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchTable();
+                }
+            });
+            
+            searchInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+            
+            // ID Number input (filter non-numeric characters)
+            idNumberInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+            
+            // Select all checkbox
+            selectAll.addEventListener('change', toggleSelectAll);
+            
+            // Delete selected button
+            deleteSelectedBtn.addEventListener('click', showDeleteConfirmation);
+            
+            // Download table button
+            downloadTableBtn.addEventListener('click', downloadTable);
+            
+            // Delete modal buttons
+            cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+            confirmDeleteBtn.addEventListener('click', confirmDelete);
+            
+            // Table body (for copy buttons using event delegation)
+            tableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('copy-btn')) {
+                    const index = parseInt(e.target.dataset.index);
+                    copyIdNumber(index);
+                }
+            });
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger reflow to enable transition
+            toast.offsetHeight;
+            
+            // Show toast
+            toast.classList.add('show');
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                
+                // Remove from DOM after transition
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, 4000);
+        }
+
+        // Show delete confirmation modal
+        function showDeleteConfirmation() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            
+            if (checkboxes.length === 0) {
+                showToast('Խնդրում ենք ընտրել առնվազն մեկ տող՝ ջնջելու համար։', 'warning');
+                return;
+            }
+            
+            // Get indices to delete
+            selectedRowsForDeletion = Array.from(checkboxes)
+                .map(checkbox => parseInt(checkbox.dataset.index))
+                .sort((a, b) => b - a);
+            
+            // Set appropriate message based on number of rows selected
+            if (checkboxes.length === 1) {
+                deleteModalMessage.textContent = `Վստա՞հ եք, որ ուզում եք ջնջել ${checkboxes.length} ընտրված տողը?`;
+            } else {
+                deleteModalMessage.textContent = `Վստա՞հ եք, որ ուզում եք ջնջել ${checkboxes.length} ընտրված տողերը?`;
+            }
+            
+            // Show modal
+            deleteModal.classList.add('show');
+        }
+
+        // Hide delete confirmation modal
+        function hideDeleteModal() {
+            deleteModal.classList.remove('show');
+            selectedRowsForDeletion = [];
+        }
+
+        // Confirm delete action
+        function confirmDelete() {
+            // Remove rows
+            selectedRowsForDeletion.forEach(index => {
+                tableData.splice(index, 1);
+            });
+            
+            saveDataToLocalStorage();
+            renderTable();
+            selectAll.checked = false;
+            
+            // Hide modal
+            hideDeleteModal();
+            
+            showToast(`Ընտրված տող(եր)ը հաջողությամբ ջնջվեց։`, 'success');
+        }
+
+        // Add a new row to the table
+        function addRow() {
+            const address = addressInput.value.trim();
+            const idNumber = idNumberInput.value.trim();
+            
+            if (!address || !idNumber) {
+                showToast('Խնդրում ենք մուտքագրել և՛ Հասցեն, և՛ ID համարը:', 'warning');
+                return;
+            }
+            
+            tableData.push({
+                address,
+                idNumber,
+                copied: false
+            });
+            
+            saveDataToLocalStorage();
+            renderTable();
+            
+            // Clear input fields
+            addressInput.value = '';
+            idNumberInput.value = '';
+            
+            showToast('Նոր տողը հաջողությամբ ավելացվեց։', 'success');
+        }
+
+        // Search the table for ID Number
+        function searchTable() {
+            const searchTerm = searchInput.value.trim();
+            
+            if (!searchTerm) {
+                renderTable();
+                return;
+            }
+            
+            const filteredData = tableData.filter(row => 
+                row.idNumber.includes(searchTerm)
+            );
+            
+            if (filteredData.length === 0) {
+                showToast('Համապատասխան ID համարներ չեն գտնվել:', 'info');
+                return;
+            }
+            
+            // Highlight matching rows
+            tableBody.innerHTML = '';
+            noDataMessage.style.display = 'none';
+            
+            filteredData.forEach((row, index) => {
+                const originalIndex = tableData.findIndex(item => item.idNumber === row.idNumber);
+                
+                const tr = document.createElement('tr');
+                tr.style.backgroundColor = '#e8f4fc'; // Highlight background
+                if (row.copied) {
+                    tr.classList.add('copied');
+                }
+                
+                // Checkbox cell
+                const checkboxCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.index = originalIndex;
+                checkbox.className = 'row-checkbox';
+                checkbox.addEventListener('change', updateDeleteButtonVisibility);
+                checkboxCell.appendChild(checkbox);
+                
+                // Address cell
+                const addressCell = document.createElement('td');
+                addressCell.textContent = row.address;
+                
+                // ID Number cell
+                const idNumberCell = document.createElement('td');
+                idNumberCell.textContent = row.idNumber;
+                
+                // Actions cell
+                const actionsCell = document.createElement('td');
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = 'Պատճենել ID-ն';
+                copyBtn.className = 'copy-btn';
+                copyBtn.dataset.index = originalIndex;
+                actionsCell.appendChild(copyBtn);
+                
+                // Append cells to row
+                tr.appendChild(checkboxCell);
+                tr.appendChild(addressCell);
+                tr.appendChild(idNumberCell);
+                tr.appendChild(actionsCell);
+                
+                // Append row to table body
+                tableBody.appendChild(tr);
+            });
+            
+            // Update delete button visibility after rendering search results
+            updateDeleteButtonVisibility();
+            
+            showToast(`Գտնվել է ${filteredData.length} համապատասխան ID համար(ներ):`, 'success');
+        }
+
+        // Toggle select all checkboxes
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            // Update delete button visibility
+            updateDeleteButtonVisibility();
+        }
+
+        // Copy ID Number to clipboard
+        function copyIdNumber(index) {
+            const idNumber = tableData[index].idNumber;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(idNumber)
+                .then(() => {
+                    // Mark as copied
+                    tableData[index].copied = true;
+                    
+                    // Update UI
+                    renderTable();
+                    
+                    // Show success message
+                    showToast(`ID համարը "${idNumber}" պատճենվել է։`, 'success');
+                })
+                .catch(err => {
+                    console.error('Չհաջողվեց պատճենել ID համարը', 'error');
+                    showToast('Չհաջողվեց պատճենել ID համարը։ Խնդրում ենք կրկին փորձել։', 'error');
+                });
+        }
+
+        // Download table as Excel file
+        function downloadTable() {
+            if (tableData.length === 0) {
+                showToast('Ներբեռնելու տվյալներ չկան: Խնդրում ենք նախ մի քանի տող ավելացնել:', 'warning');
+                return;
+            }
+            
+            try {
+                // Prepare data for Excel
+                const excelData = tableData.map(row => ({
+                    Address: row.address,
+                    'ID Համար': row.idNumber
+                }));
+                
+                // Create worksheet
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                
+                // Create workbook
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Tables');
+                
+                // Generate Excel file
+                const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                
+                // Save file
+                saveExcelFile(excelBuffer, 'TERMINALS_Data.xlsx');
+                
+                showToast('Աղյուսակը հաջողությամբ ներբեռնվեց։', 'success');
+            } catch (error) {
+                console.error('Excel ֆայլ ստեղծելիս սխալ առաջացավ։', error);
+                showToast('Excel ֆայլի ստեղծումը ձախողվեց։ Խնդրում ենք կրկին փորձել։', 'error');
+            }
+        }
+
+        // Save Excel file
+        function saveExcelFile(buffer, fileName) {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Reset copied state when page is closed/refreshed
+        window.addEventListener('beforeunload', () => {
+            // Reset copied state for all rows
+            tableData.forEach(row => {
+                row.copied = false;
+            });
+            
+            saveDataToLocalStorage();
+        });
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
